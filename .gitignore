@@ -1,0 +1,12 @@
+node_modules
+package-lock.json
+dist
+src-tauri/target
+src-tauri/gen/schemas
+output
+tmp
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+.DS_Store
+*.log
