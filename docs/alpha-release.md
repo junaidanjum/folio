@@ -1,8 +1,25 @@
 # Folio macOS alpha
 
-Folio is an experimental local Markdown preview and printing app. This alpha targets macOS on Apple Silicon and Intel. It is not Developer ID signed or notarized. Its ad-hoc signature checks bundle integrity but does not verify the publisher.
+Version 0.1.0 is an experimental macOS build for Apple Silicon and Intel. It is ad-hoc signed for bundle integrity, but is not Developer ID signed or notarized. The signature does not authenticate the publisher.
 
-## Build
+The app and DMG have been built locally. No public release has been published. See the [verification record and remaining checks](features/public-alpha.md) before sharing a build.
+
+## Install or replace
+
+1. Quit Folio.
+2. Open `Folio_0.1.0_universal.dmg`.
+3. Drag Folio into Applications and choose **Replace** if prompted.
+4. Launch the copy in Applications, then open a Markdown file.
+
+Settings and recent-file paths are stored separately from the app. Keep the previous DMG to roll back by repeating these steps with the older version.
+
+Use Finder's **Open With → Folio** to open a document explicitly. Double-clicking requires Folio to be associated with the file; replacing the app does not itself select it as the default Markdown app.
+
+macOS may block downloaded unsigned builds. Installation of a quarantined download on a clean Mac has not been verified. Do not disable Gatekeeper globally. Developer ID signing and notarization remain required work for a signed general release; see [Tauri macOS signing](https://v2.tauri.app/distribute/sign/macos/).
+
+## Build locally
+
+Use macOS with the [development prerequisites](../README.md#development), then run:
 
 ```bash
 pnpm install --frozen-lockfile
@@ -14,28 +31,52 @@ pnpm rust:test
 pnpm build:alpha
 ```
 
-Outputs are under `src-tauri/target/universal-apple-darwin/release/bundle/`: `macos/Folio.app` and `dmg/Folio_0.1.0_universal.dmg`.
+Outputs, relative to the repository root:
 
-The manually triggered **Build macOS alpha** workflow produces a universal DMG and SHA-256 checksum as private workflow artifacts. It does not publish a GitHub release. No Apple credentials are required for this unsigned alpha.
+```text
+src-tauri/target/universal-apple-darwin/release/bundle/macos/Folio.app
+src-tauri/target/universal-apple-darwin/release/bundle/dmg/Folio_0.1.0_universal.dmg
+```
 
-## Install or replace
+The [alpha configuration](../src-tauri/tauri.alpha.conf.json) selects ad-hoc signing. No Apple signing credentials are needed.
 
-Quit Folio, open the DMG, and drag Folio into Applications. Choose Replace if prompted. Keep the previous DMG if you need to roll back. Settings and recent paths are stored separately from the app.
+Verify both architecture slices and the bundle signature:
 
-macOS may block downloaded unsigned builds. This is a known limitation of this alpha. Do not disable Gatekeeper or remove quarantine globally. General distribution with normal installation requires Developer ID signing and notarization; see [Tauri macOS signing](https://v2.tauri.app/distribute/sign/macos/).
+```bash
+lipo src-tauri/target/universal-apple-darwin/release/bundle/macos/Folio.app/Contents/MacOS/folio -verify_arch arm64 x86_64
+codesign --verify --deep --strict src-tauri/target/universal-apple-darwin/release/bundle/macos/Folio.app
+```
 
-## Test before sharing a build
+To generate a checksum alongside the local DMG:
 
-- Open `.md` and `.markdown` files through the picker, Finder, and a native drag/drop. Check both launch-time opening and opening while already running.
-- Save changes externally, including an atomic file replacement. Verify the document reloads; closing a document must not reopen it on the next save.
+```bash
+cd src-tauri/target/universal-apple-darwin/release/bundle/dmg
+shasum -a 256 Folio_0.1.0_universal.dmg > SHA256SUMS.txt
+shasum -a 256 -c SHA256SUMS.txt
+```
+
+A checksum detects changes to the artifact; it does not establish publisher identity. `pnpm build:alpha` does not generate the checksum automatically.
+
+## GitHub Actions build
+
+Run **Build macOS alpha** manually from the repository's Actions tab. The [workflow](../.github/workflows/alpha.yml) runs frontend and Rust checks, builds the universal DMG, verifies the binary and signature, and uploads the DMG and a SHA-256 checksum in the `folio-macos-universal-unsigned-alpha` artifact.
+
+Artifact access follows the repository's GitHub permissions. The workflow does not publish a GitHub release and has not yet been exercised. Its checksum entries use repository-relative build paths; local checksums generated above use the DMG filename.
+
+## Check before sharing
+
+- Open `.md` and `.markdown` files through the picker, Finder, and a physical drag/drop. Check launch-time opening and opening while already running.
+- Save changes externally, including atomic file replacement. Verify reload; closing a document must not reopen it on the next save.
 - Check long paragraphs, nested lists, long code, tables, images, diagrams, and math. Change paper size, orientation, margins, and text size.
-- Export using the native PDF dialog. Check page count, no blank sheets, final lines of code, repeated headers, and page footers. Cancel and reopen the dialog.
-- Check the Intel build on Intel hardware before claiming runtime compatibility there. A universal binary alone verifies compilation, not runtime behavior.
+- Export using the native PDF dialog. Check page count, blank sheets, final code lines, repeated headers, and footers. Cancel and reopen the dialog.
+- Test on Intel hardware, a physical printer, and a clean Mac receiving a downloaded DMG.
+
+A universal binary verifies that both architectures compiled; it does not establish Intel runtime compatibility. The [verification record](features/public-alpha.md) distinguishes completed checks from outstanding ones.
 
 ## Limitations
 
-- Unsupported indivisible content or custom CSS that cannot fit triggers a visible layout error and blocks Folio's print/export action. Full unpaginated content remains available for inspection.
+- Unsupported indivisible content or custom CSS that cannot fit triggers a visible layout error and blocks print/export. Full unpaginated content remains available for inspection.
 - Layout changes from unusual custom CSS require checking the exported PDF.
-- Remote images are blocked by the desktop content security policy. Local raster images must be inside the document directory. SVG file images are unsupported.
-- PDF export uses the native Save as PDF dialog. There is no automatic updater; install newer builds manually.
+- Remote images are blocked. Local PNG, JPEG, GIF, and WebP images must be inside the document directory. SVG file images are unsupported.
+- PDF export uses the native Save as PDF dialog. There is no automatic updater; replace the app manually.
 - Alpha support is macOS only. Windows and Linux releases are not validated.

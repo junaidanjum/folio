@@ -1,32 +1,42 @@
-# Public alpha preparation
+# macOS alpha readiness
 
-Prepare an unsigned macOS alpha for Apple Silicon and Intel. Do not publish or upload it during this task.
+**Status: locally built unsigned alpha, version 0.1.0.** The universal app and DMG contain Apple Silicon and Intel binaries. No public release has been uploaded. This is an experimental build with outstanding distribution checks, not a signed general release.
 
-## Work
+See the [alpha guide](../alpha-release.md) for installation, replacement, build commands, and artifact locations.
 
-- Split long paragraphs, lists, oversized table rows, and wrapped code lines without losing text or inline formatting.
-- Fail visibly when an indivisible object cannot fit; keep content readable and prevent incomplete printing.
-- Handle native drops, stale reload events, and editor saves that replace files atomically.
-- Verify file opening and printing/PDF behavior in the packaged app, recording actual evidence and remaining gaps.
-- Build a universal macOS app and DMG, add a repeatable unsigned artifact workflow, and document installation and limitations.
-- Commit the verified work locally.
+## Delivered
 
-## Distribution decision
+- Long paragraphs, lists, code, and oversized table rows split across pages without losing text or inline formatting.
+- Content that cannot fit fails visibly, remains readable, and blocks incomplete printing.
+- Native file-open events are retained during startup, so Finder Open With opens the requested document on both cold and warm launches.
+- Native drop routing, stale reload suppression, and editor saves that replace files atomically are handled.
+- Native PDF output avoids the reproduced extra blank sheets and renders syntax highlighting, math, and diagrams in the packaged app.
+- A universal app and DMG build locally. A manually triggered GitHub Actions workflow prepares the same alpha artifacts without publishing a release.
 
-The user chose an unsigned alpha because no Apple Developer account/certificate is available. Developer ID signing and notarization remain out of scope for this alpha. Ad-hoc signing may be used for bundle integrity; it does not authenticate the publisher or remove Gatekeeper restrictions.
+The build uses ad-hoc signing for integrity. Developer ID signing and notarization are not configured; ad-hoc signing does not authenticate the publisher or remove Gatekeeper restrictions.
 
 ## Verification — 2026-10-08
 
-- 35 frontend tests pass, including long text/list/table splitting, retained inline ancestors, native drop routing, stale reload suppression, and blocked printing for pending/failed layouts.
-- Frontend lint, formatting, TypeScript, and production build pass. Rust tests, Clippy with warnings denied, and formatting pass.
-- Real Chromium checks pass in screen and print media for A4 portrait and Letter landscape, including larger text, heading numbering, link URLs, and oversized content. Compared all code text, paragraphs, list text, and table cells with the source; no blocks exceeded page bounds.
-- The packaged universal app opened the test file using the native picker, recent files, Finder Open With while running, and Finder Open With from a cold launch.
-- The packaged app reloaded a disposable Markdown file after atomic replacement.
-- Native Save as PDF was exercised. A reproduced six-sheet/three-content-page rounding bug was fixed; the resulting PDF contains three nonblank pages. Rendered pages were visually inspected for code, table, diagram, math, local image, and footer output.
-- The PDF inspection also exposed packaged inline-style and syntax-highlighting failures. Moved the static boot styles out of HTML to avoid generated style hashes overriding the intended inline-style policy; switched Shiki to its JavaScript engine without widening script permissions. Re-exported and visually verified the result.
-- Universal Mach-O contains arm64 and x86_64 slices. Ad-hoc bundle integrity verification passes. The DMG builds locally. Intel execution is not hardware-tested.
-- Native drag/drop routing has automated regression coverage; a physical Finder-to-window drag remains a manual release check. Physical printer output and the GitHub workflow have not been exercised in this environment.
+| Area                | Evidence                                                                                                                                                                                                                                                 |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend automation | All 35 tests passed, along with lint, formatting, TypeScript checks, and the production build.                                                                                                                                                           |
+| Rust automation     | Tests, formatting, and Clippy with warnings denied passed.                                                                                                                                                                                               |
+| Browser pagination  | Chromium screen and print checks passed for A4 portrait and Letter landscape, including larger text, heading numbering, link URLs, and oversized content. Code, paragraphs, lists, and table cells retained source text; no blocks exceeded page bounds. |
+| Native file opening | The packaged app opened files through the picker, recent files, and Finder Open With, both while running and from a cold launch.                                                                                                                         |
+| External saves      | The packaged app reloaded a disposable Markdown file after atomic replacement.                                                                                                                                                                           |
+| Native PDF          | Save as PDF produced three nonblank pages after fixing a six-sheet/three-content-page rounding issue. Rendered pages were visually checked for code, tables, diagrams, math, local images, and footers.                                                  |
+| Packaging           | The universal Mach-O contains arm64 and x86_64 slices. Ad-hoc bundle integrity verification passed, and the DMG built locally.                                                                                                                           |
 
-## Remaining public-distribution limits
+Browser verification used the repository's kitchen-sink fixture and generated stress content. The native PDF checks used a disposable fixture. Historical verification of the reported Viscos document is recorded separately in [document pagination](document-pagination.md).
 
-Unsigned alpha only, as requested. No Developer ID identity or notarization. No public release was uploaded. A signed general release requires Apple credentials and additional Intel/printer/manual-drag verification.
+Packaged PDF inspection exposed two additional issues: static inline boot styles interfered with the intended inline-style policy, and syntax highlighting failed in the packaged runtime. Boot styles now load from an external stylesheet, and Shiki uses its JavaScript engine without widening script permissions. The exported result was visually verified again after these changes.
+
+## Outstanding checks
+
+- [ ] Execute the packaged app on Intel hardware.
+- [ ] Perform a physical Finder-to-window drag; native drop routing currently has automated coverage.
+- [ ] Verify physical printer output.
+- [ ] Run the GitHub Actions alpha workflow and inspect its downloaded artifacts.
+- [ ] Verify installation of a downloaded, quarantined DMG on a clean Mac.
+
+Developer ID signing and notarization remain prerequisites for a signed general release. Windows and Linux builds are outside the validated alpha scope.
