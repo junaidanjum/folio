@@ -1,4 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [{ "source": "/", "destination": "/landing.html" }]
+  "framework": "vite",
+  "buildCommand": "pnpm build && cp dist/landing.html dist/index.html",
+  "outputDirectory": "dist"
 }
