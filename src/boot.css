@@ -2,36 +2,52 @@
   display: grid;
   min-height: 100vh;
   place-items: center;
-  background: radial-gradient(circle at 50% 20%, #f5f3ef, #e5e3de 65%);
-  color: #292823;
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  background: linear-gradient(180deg, #9abfda, #d7e6f5 28%, #f5f8fb 60%, #fff);
+  color: #17191c;
+  font-family: 'Avenir Next', Avenir, 'Trebuchet MS', sans-serif;
   text-align: center;
 }
 
-.folio-boot__page {
-  display: grid;
-  width: 54px;
-  height: 68px;
-  margin: 0 auto 22px;
-  place-items: center;
-  border: 1px solid #c6c2b9;
-  border-radius: 4px;
-  background: #fff;
-  box-shadow: 0 12px 30px rgba(39, 36, 29, 0.12);
-  font-family: Georgia, serif;
-  font-size: 25px;
+.folio-boot__mark {
+  display: block;
+  width: 88px;
+  height: 96px;
+  margin: 0 auto 16px;
+  filter: drop-shadow(0 8px 12px rgba(16, 55, 84, 0.1));
+}
+.folio-boot__wordmark {
+  margin-bottom: 18px;
+  font-size: 28px;
+  font-weight: 650;
+  letter-spacing: -0.06em;
+}
+.folio-boot__wordmark span {
+  color: #237dac;
 }
 
 .folio-boot h1 {
   margin: 0 0 8px;
-  font-family: Georgia, serif;
+  font-family: inherit;
   font-size: 34px;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: -0.03em;
 }
 
 .folio-boot p {
   margin: 0;
-  color: #77736b;
+  color: #626973;
   font-size: 13px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .folio-boot {
+    background: linear-gradient(180deg, #29465d, #1e303f 32%, #171e25 75%);
+    color: #edf1f5;
+  }
+  .folio-boot__wordmark span {
+    color: #79c3ea;
+  }
+  .folio-boot p {
+    color: #a8b3bf;
+  }
 }

@@ -1,5 +1,7 @@
 import { FileText, FolderOpen } from 'lucide-react'
 
+const folioMark = new URL('../assets/folio-mark.svg', import.meta.url).href
+
 type EmptyStateProps = {
   onOpen: () => void
   recentPaths: string[]
@@ -9,11 +11,10 @@ type EmptyStateProps = {
 export const EmptyState = ({ onOpen, recentPaths, onRecent }: EmptyStateProps) => (
   <main className="empty-state">
     <input id="folio-browser-file-input" className="sr-only" type="file" accept=".md,.markdown,text/markdown" tabIndex={-1} aria-hidden="true" />
-    <div className="folio-seal" aria-hidden="true">
-      <span>F</span>
-      <i />
-    </div>
-    <p className="empty-kicker">Folio</p>
+    <img className="folio-mark" src={folioMark} alt="" aria-hidden="true" />
+    <p className="empty-wordmark">
+      folio<span>.</span>
+    </p>
     <h1>Markdown, ready for paper.</h1>
     <p>Open a document to see it beautifully typeset, page by page.</p>
     <button className="open-button" onClick={onOpen}>

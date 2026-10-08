@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm'
 import { documentThemes } from '../document/themes'
 
 const repository = 'https://github.com/junaidanjum/folio'
+const alphaRelease = `${repository}/releases/tag/v0.1.0-alpha.2`
 const alphaGuide = `${repository}/blob/main/docs/alpha-release.md`
 const sample = `# A little room to think
 
@@ -47,7 +48,7 @@ const questions = [
   ],
   [
     'Can I use it today?',
-    'Folio is an open-source macOS alpha. You can build the universal Apple Silicon and Intel app from source. There is no public installer yet, and the alpha is not Developer ID signed or notarized. See the build guide for current limitations.',
+    'Folio is an open-source macOS alpha. Download the universal Apple Silicon and Intel installer, or build from source. The alpha is ad-hoc signed, but is not Developer ID signed or notarized. See the build guide for current limitations.',
   ],
 ]
 
@@ -418,7 +419,7 @@ export function LandingPage() {
           </h2>
           <p>Made for Mac. Built around your Markdown.</p>
           <div className="closing-actions">
-            <a href={alphaGuide} className="button">
+            <a href={alphaRelease} className="button">
               <Monitor size={17} /> Get the macOS alpha <ArrowUpRight size={16} />
             </a>
             <a href={repository} className="text-link">
@@ -426,9 +427,9 @@ export function LandingPage() {
             </a>
           </div>
           <p className="alpha-note">
-            v0.1.0 alpha · Build from source · MIT licensed
+            v0.1.0 alpha 2 · Apple Silicon + Intel · MIT licensed
             <br />
-            No public installer yet. Not signed or notarized for distribution.
+            Ad-hoc signed. Not Developer ID signed or notarized.
           </p>
         </section>
       </main>
