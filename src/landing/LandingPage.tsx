@@ -5,7 +5,7 @@ import remarkGfm from 'remark-gfm'
 import { documentThemes } from '../document/themes'
 
 const repository = 'https://github.com/junaidanjum/folio'
-const alphaRelease = `${repository}/releases/tag/v0.1.0-alpha.2`
+const alphaRelease = `${repository}/releases/tag/alpha`
 const alphaGuide = `${repository}/blob/main/docs/alpha-release.md`
 const sample = `# A little room to think
 
@@ -427,7 +427,7 @@ export function LandingPage() {
             </a>
           </div>
           <p className="alpha-note">
-            v0.1.0 alpha 2 · Apple Silicon + Intel · MIT licensed
+            alpha · Apple Silicon + Intel · MIT licensed
             <br />
             Ad-hoc signed. Not Developer ID signed or notarized.
           </p>

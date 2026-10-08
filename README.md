@@ -2,7 +2,7 @@
 
 Folio is a local-first desktop print preview for Markdown. Open a document, choose its style, preview physical pages, then print or save a PDF.
 
-**Current status: macOS alpha (0.1.0).** Download the universal Apple Silicon and Intel installer from [alpha 2](https://github.com/junaidanjum/folio/releases/tag/v0.1.0-alpha.2), or build from source. It is ad-hoc signed, without Developer ID signing or notarization. Intel runtime testing and other release checks remain outstanding.
+**Current status: macOS alpha (0.1.0).** Download the universal Apple Silicon and Intel installer from [alpha](https://github.com/junaidanjum/folio/releases/tag/alpha), or build from source. It is ad-hoc signed, without Developer ID signing or notarization. Intel runtime testing and other release checks remain outstanding.
 
 See the [installation and build guide](docs/alpha-release.md) and [verification record](docs/features/public-alpha.md).
 

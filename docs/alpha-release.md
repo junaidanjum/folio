@@ -2,7 +2,7 @@
 
 Version 0.1.0 is an experimental macOS build for Apple Silicon and Intel. It is ad-hoc signed for bundle integrity, but is not Developer ID signed or notarized. The signature does not authenticate the publisher.
 
-Download [Folio 0.1.0 alpha 2](https://github.com/junaidanjum/folio/releases/tag/v0.1.0-alpha.2) for the refreshed interface and overlapping-page app icon. The app still reports version 0.1.0. See the [verification record and remaining checks](features/public-alpha.md).
+Download [Folio alpha](https://github.com/junaidanjum/folio/releases/tag/alpha) for the refreshed interface and overlapping-page app icon. The app still reports version 0.1.0. See the [verification record and remaining checks](features/public-alpha.md).
 
 ## Install or replace
 
