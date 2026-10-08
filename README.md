@@ -51,6 +51,8 @@ pnpm tauri dev
 
 For a browser-only development preview, run `pnpm dev` and open the local URL it prints, normally `http://localhost:1420`. Do not open `index.html` directly. Browser file picking works, but native paths, recent-file reopening, file watching, relative filesystem images, and printing require the desktop app.
 
+The marketing landing page is available at `http://localhost:1420/landing.html`. It has a separate entry point and stylesheet; the desktop app still opens at `/`. Both entry points are included in `pnpm build`.
+
 ### Checks
 
 ```bash

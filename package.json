@@ -16,8 +16,8 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "vite --config vite.config.ts",
+    "build": "tsc -b && vite build --config vite.config.ts",
     "check": "pnpm lint && pnpm format:check && pnpm test && pnpm build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
