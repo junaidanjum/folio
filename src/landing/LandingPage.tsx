@@ -6,7 +6,7 @@ import { documentThemes } from '../document/themes'
 
 const repository = 'https://github.com/junaidanjum/folio'
 const alphaRelease = `${repository}/releases/tag/v0.1.0-alpha`
-const alphaGuide = `${repository}/blob/main/docs/alpha-release.md`
+const alphaGuide = `${repository}#install-and-use`
 const sample = `# A little room to think
 
 Notes on making things that matter.

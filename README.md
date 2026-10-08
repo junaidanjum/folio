@@ -4,8 +4,6 @@ Folio is a local-first desktop print preview for Markdown. Open a document, choo
 
 **Current status: macOS alpha (0.1.0).** Download the universal Apple Silicon and Intel installer from [0.1.0 alpha](https://github.com/junaidanjum/folio/releases/tag/v0.1.0-alpha), or build from source. It is ad-hoc signed, without Developer ID signing or notarization. Intel runtime testing and other release checks remain outstanding.
 
-See the [installation and build guide](docs/alpha-release.md) and [verification record](docs/features/public-alpha.md).
-
 ## Features
 
 - Open `.md` and `.markdown` files using the file picker, Finder Open With, recent files, or drag and drop.
@@ -19,7 +17,7 @@ Folio previews files edited in another application. Local documents stay on your
 
 ## Install and use
 
-If you have a built alpha DMG, quit Folio, open the DMG, and drag Folio into Applications. Choose **Replace** to update an existing installation. Keep the previous DMG for rollback. See the [alpha guide](docs/alpha-release.md#install-or-replace) for installation limitations.
+If you have a built alpha DMG, quit Folio, open the DMG, and drag Folio into Applications. Choose **Replace** to update an existing installation. Keep the previous DMG for rollback.
 
 1. Open a Markdown file from Folio or use Finder's **Open With → Folio**. Double-clicking opens Folio only when it is the file's associated app.
 2. Adjust the document settings and inspect the preview.
@@ -62,7 +60,16 @@ pnpm rust:clippy
 pnpm rust:test
 ```
 
-`pnpm check` runs lint, formatting, frontend tests, TypeScript checks, and the production frontend build. Open [the kitchen-sink fixture](fixtures/kitchen-sink.md) in the packaged app to check rendering and native PDF output. Build a universal DMG using the [alpha build instructions](docs/alpha-release.md#build-locally).
+`pnpm check` runs lint, formatting, frontend tests, TypeScript checks, and the production frontend build. Open [the kitchen-sink fixture](fixtures/kitchen-sink.md) in the packaged app to check rendering and native PDF output.
+
+### Build the macOS installer
+
+```bash
+rustup target add aarch64-apple-darwin x86_64-apple-darwin
+pnpm build:alpha
+```
+
+The universal DMG is written to `src-tauri/target/universal-apple-darwin/release/bundle/dmg/`. The build uses ad-hoc signing; no Apple signing credentials are required.
 
 ## Architecture
 
@@ -72,11 +79,12 @@ pnpm rust:test
 - `src/stores` contains document state and persisted settings.
 - `src-tauri` validates Markdown paths, reads files, watches external changes, and handles native file-open events and launch arguments.
 
-Document themes map typed definitions to scoped CSS variables. Raw HTML is sanitized, Markdown scripts are not executed, and Mermaid uses strict security mode. See [document pagination](docs/features/document-pagination.md) for layout behavior and regression coverage.
+Document themes map typed definitions to scoped CSS variables. Raw HTML is sanitized, Markdown scripts are not executed, and Mermaid uses strict security mode.
 
 ## Limitations
 
 - This is an experimental macOS alpha. Windows and Linux releases are not validated.
+- Intel hardware execution, physical drag-and-drop, physical printing, clean-Mac downloaded installation, and the GitHub alpha workflow remain unverified.
 - Content that cannot fit a page shows a layout warning and blocks print/export. Full unpaginated content remains available for inspection.
 - Unusual custom CSS needs checking in the exported PDF.
 - Remote images are blocked. Native local images support PNG, JPEG, GIF, and WebP inside the document directory; SVG file images are unsupported.
