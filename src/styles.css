@@ -327,6 +327,7 @@ button {
   letter-spacing: 0.02em;
 }
 .pagination-source {
+  display: flow-root;
   position: fixed;
   z-index: -10;
   top: 0;
@@ -500,6 +501,9 @@ button {
   border-collapse: collapse;
   font-size: 0.85em;
 }
+.document-theme :is(h1, h2, h3, h4, h5, h6) + table {
+  margin-top: 0.5em;
+}
 .document-theme th,
 .document-theme td {
   padding: 0.6em 0.7em;
@@ -579,6 +583,8 @@ button {
   color: var(--document-muted);
   font-size: 0.82em;
 }
+.numbered-headings.pagination-source > h1::before,
+.numbered-headings.pagination-source > h2::before,
 .numbered-headings .paper-content > h1::before,
 .numbered-headings .paper-content > h2::before {
   content: attr(data-heading-number) '. ';
@@ -1265,9 +1271,29 @@ input[type='range'] {
   .without-print-backgrounds tbody tr {
     background: transparent !important;
   }
-  .print-link-urls a[href^='http']::after {
-    content: ' (' attr(href) ')';
-    color: var(--document-muted);
-    font-size: 0.85em;
-  }
+}
+
+.print-link-urls a[href^='http']::after {
+  content: ' (' attr(href) ')';
+  color: var(--document-muted);
+  font-size: 0.85em;
+}
+
+.document-theme {
+  overflow-wrap: anywhere;
+}
+.pagination-error {
+  max-width: 800px;
+  margin: 0 auto 24px;
+  padding: 20px;
+  background: #fff4db;
+  color: #513900;
+  border: 1px solid #b58b35;
+  border-radius: 6px;
+}
+.unpaginated-content {
+  width: var(--page-width);
+  margin: 0 auto;
+  padding: var(--page-margin-y) var(--page-margin-x);
+  background: white;
 }

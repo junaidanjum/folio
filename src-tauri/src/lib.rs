@@ -12,6 +12,7 @@ use std::{
 use tauri::{Emitter, Manager, State};
 
 struct WatcherState(Mutex<Option<RecommendedWatcher>>);
+struct PendingFileState(Mutex<Option<String>>);
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -115,7 +116,9 @@ fn watch_markdown_file(
     let change_generation = Arc::new(AtomicU64::new(0));
     let mut watcher = notify::recommended_watcher(move |result: notify::Result<notify::Event>| {
         if let Ok(event) = result {
-            if matches!(event.kind, EventKind::Modify(_) | EventKind::Create(_)) {
+            if matches!(event.kind, EventKind::Modify(_) | EventKind::Create(_))
+                && event.paths.iter().any(|path| path == &watched_path)
+            {
                 let app_handle = app.clone();
                 let changed_path = watched_path.to_string_lossy().to_string();
                 let generation_counter = Arc::clone(&change_generation);
@@ -131,17 +134,24 @@ fn watch_markdown_file(
     })
     .map_err(|error| error.to_string())?;
     watcher
-        .watch(&canonical, RecursiveMode::NonRecursive)
+        .watch(
+            canonical
+                .parent()
+                .ok_or("The document directory is unavailable.")?,
+            RecursiveMode::NonRecursive,
+        )
         .map_err(|error| error.to_string())?;
     *state.0.lock().map_err(|_| "File watcher lock failed")? = Some(watcher);
     Ok(())
 }
 
 #[tauri::command]
-fn initial_file() -> Option<String> {
-    std::env::args()
-        .skip(1)
-        .find(|argument| validate_markdown_path(Path::new(argument)).is_ok())
+fn initial_file(state: State<PendingFileState>) -> Result<Option<String>, String> {
+    Ok(state
+        .0
+        .lock()
+        .map_err(|_| "Pending file lock failed")?
+        .take())
 }
 
 #[tauri::command]
@@ -154,6 +164,9 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(WatcherState(Mutex::new(None)))
+        .manage(PendingFileState(Mutex::new(std::env::args().skip(1).find(
+            |argument| validate_markdown_path(Path::new(argument)).is_ok(),
+        ))))
         .invoke_handler(tauri::generate_handler![
             read_markdown_file,
             read_local_image,
@@ -167,8 +180,29 @@ pub fn run() {
             }
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running Folio");
+        .build(tauri::generate_context!())
+        .expect("error while building Folio")
+        .run(|_app, _event| {
+            #[cfg(any(target_os = "macos", target_os = "ios"))]
+            if let tauri::RunEvent::Opened { urls } = _event {
+                let path = urls
+                    .iter()
+                    .filter_map(|url| url.to_file_path().ok())
+                    .find(|path| validate_markdown_path(path).is_ok());
+                if let Some(path) = path {
+                    let state = _app.state::<PendingFileState>();
+                    if let Ok(mut pending) = state.0.lock() {
+                        *pending = Some(path.to_string_lossy().into_owned());
+                    }
+                    let _ = _app.emit("markdown-open-requested", ());
+                    if let Some(window) = _app.get_webview_window("main") {
+                        let _ = window.show();
+                        let _ = window.unminimize();
+                        let _ = window.set_focus();
+                    }
+                }
+            }
+        });
 }
 
 #[cfg(test)]

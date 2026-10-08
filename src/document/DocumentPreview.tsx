@@ -21,10 +21,13 @@ const MARGINS = {
 } as const
 
 const PX_PER_MM = 96 / 25.4
+// WebKit needs a small allowance to avoid an extra sheet from millimetre rounding.
+const PRINT_HEIGHT_ALLOWANCE_MM = 1
 
 export const DocumentPreview = ({ document, settings }: DocumentPreviewProps) => {
   const sourceRef = useRef<HTMLDivElement>(null)
   const [pages, setPages] = useState<string[]>([])
+  const [paginationError, setPaginationError] = useState<string | null>(null)
   const theme = getTheme(settings.theme)
   const paper = PAPER[settings.paperSize]
   const margin = MARGINS[settings.marginPreset]
@@ -52,6 +55,10 @@ export const DocumentPreview = ({ document, settings }: DocumentPreviewProps) =>
         settings.lineHeight,
         settings.paragraphSpacing,
         settings.codeLabels,
+        settings.numberedHeadings,
+        settings.printLinkUrls,
+        settings.customCssEnabled,
+        settings.customCss,
       ]),
     [document.content, settings],
   )
@@ -60,31 +67,77 @@ export const DocumentPreview = ({ document, settings }: DocumentPreviewProps) =>
     const source = sourceRef.current
     if (!source) return
 
+    const preview = source.closest<HTMLElement>('.preview-viewport')!
     let frame = 0
     const paginate = () => {
+      preview.dataset.paginationState = 'pending'
       cancelAnimationFrame(frame)
       frame = requestAnimationFrame(() => {
         const blocks = Array.from(source.children)
-        const availableHeight = (dimensions.height - margin.y * 2) * PX_PER_MM
-        setPages(paginateElements(blocks, availableHeight))
+        const availableHeight = (dimensions.height - margin.y * 2 - PRINT_HEIGHT_ALLOWANCE_MM) * PX_PER_MM
+        const measurement = source.cloneNode(false) as HTMLDivElement
+        source.after(measurement)
+        try {
+          setPages(
+            paginateElements(blocks, availableHeight, (elements) => {
+              measurement.replaceChildren(...elements.map((element) => element.cloneNode(true)))
+              return measurement.getBoundingClientRect().height
+            }),
+          )
+          setPaginationError(null)
+          const pendingImage = Array.from(source.querySelectorAll('img')).some(
+            (image) => !image.closest('.is-missing') && (!image.getAttribute('src') || !image.complete),
+          )
+          preview.dataset.paginationState = pendingImage || source.querySelector('.diagram-loading') ? 'pending' : 'ready'
+        } catch (cause) {
+          setPages([])
+          setPaginationError(cause instanceof Error ? cause.message : 'This document could not be paginated safely.')
+          preview.dataset.paginationState = 'error'
+        } finally {
+          measurement.remove()
+        }
       })
     }
 
     paginate()
     const observer = new ResizeObserver(paginate)
     observer.observe(source)
+    const mutations = new MutationObserver(paginate)
+    mutations.observe(source, { childList: true, subtree: true, characterData: true, attributes: true })
     source.querySelectorAll('img').forEach((image) => image.addEventListener('load', paginate))
-    window.document.fonts.ready.then(paginate).catch(() => undefined)
+    let cancelled = false
+    const onFontsReady = async () => {
+      try {
+        await window.document.fonts.ready
+        if (!cancelled) paginate()
+      } catch {
+        // The initial layout remains available if font loading fails.
+      }
+    }
+    void onFontsReady()
 
     return () => {
       cancelAnimationFrame(frame)
+      cancelled = true
       observer.disconnect()
+      mutations.disconnect()
       source.querySelectorAll('img').forEach((image) => image.removeEventListener('load', paginate))
     }
   }, [paginationKey, dimensions.height, margin.y])
 
   return (
     <main className="preview-viewport" aria-label="Document preview">
+      {paginationError ? (
+        <section className="pagination-error" role="alert">
+          <strong>Page layout needs attention</strong>
+          <p>{paginationError}</p>
+        </section>
+      ) : null}
+      {paginationError ? (
+        <div className={`unpaginated-content document-theme theme-${settings.theme}`} style={pageStyle}>
+          <MarkdownRenderer content={document.content} documentPath={document.path} showCodeLabels={settings.codeLabels} />
+        </div>
+      ) : null}
       <div className="page-stack" style={{ transform: `scale(${settings.zoom})`, transformOrigin: 'top center' }}>
         {pages.map((page, index) => (
           <article
@@ -105,7 +158,12 @@ export const DocumentPreview = ({ document, settings }: DocumentPreviewProps) =>
         ))}
       </div>
 
-      <div className={`pagination-source document-theme theme-${settings.theme}`} style={pageStyle} ref={sourceRef} aria-hidden="true">
+      <div
+        className={`pagination-source document-theme theme-${settings.theme}${settings.numberedHeadings ? ' numbered-headings' : ''}${settings.printLinkUrls ? ' print-link-urls' : ''}`}
+        style={pageStyle}
+        ref={sourceRef}
+        aria-hidden="true"
+      >
         {document.frontmatter.title ? (
           <header className="document-title">
             <h1>{document.frontmatter.title}</h1>

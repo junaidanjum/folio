@@ -28,7 +28,8 @@
     "rust:test": "cargo test --manifest-path src-tauri/Cargo.toml",
     "test": "vitest run",
     "test:watch": "vitest",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "build:alpha": "tauri build --target universal-apple-darwin --bundles app,dmg --config src-tauri/tauri.alpha.conf.json"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

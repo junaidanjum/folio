@@ -1,0 +1,40 @@
+name: Build macOS alpha
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+          components: clippy,rustfmt
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm rust:fmt
+      - run: pnpm rust:clippy
+      - run: pnpm rust:test
+      - run: pnpm build:alpha
+      - name: Verify universal bundle
+        run: |
+          lipo src-tauri/target/universal-apple-darwin/release/bundle/macos/Folio.app/Contents/MacOS/folio -verify_arch arm64 x86_64
+          codesign --verify --deep --strict src-tauri/target/universal-apple-darwin/release/bundle/macos/Folio.app
+          shasum -a 256 src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: folio-macos-universal-unsigned-alpha
+          path: |
+            src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+            SHA256SUMS.txt
+          if-no-files-found: error

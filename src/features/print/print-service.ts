@@ -5,6 +5,10 @@ export const isDesktopApp = () => Boolean((window as Window & { __TAURI_INTERNAL
 export const openNativePrintDialog = async () => {
   if (!isDesktopApp()) throw new Error('Printing and PDF export are available in the Folio desktop app.')
 
+  if (window.document.querySelector<HTMLElement>('.preview-viewport')?.dataset.paginationState !== 'ready') {
+    throw new Error('Wait for the document layout to finish, or resolve the page layout warning before printing.')
+  }
+
   const root = window.document.documentElement
   const restorePreview = () => {
     requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('native-print-active')))
@@ -15,9 +19,8 @@ export const openNativePrintDialog = async () => {
 
   try {
     await invoke('print_document')
-  } catch (cause) {
+  } finally {
     window.removeEventListener('afterprint', restorePreview)
-    root.classList.remove('native-print-active')
-    throw cause
+    restorePreview()
   }
 }

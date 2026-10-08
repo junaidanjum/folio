@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { listen } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
 import { CircleAlert, X } from 'lucide-react'
@@ -20,16 +20,20 @@ export const App = () => {
   const settings = useSettingsStore()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [dragging, setDragging] = useState(false)
+  const openGeneration = useRef(0)
   const [busy, setBusy] = useState<'export' | 'print' | null>(null)
 
   const openPath = useCallback(
     async (path: string) => {
+      const generation = ++openGeneration.current
       try {
         setStatus('loading')
         const nextDocument = await openDocumentPath(path)
+        if (generation !== openGeneration.current) return
         setDocument(nextDocument)
-        await startWatching(path)
+        await startWatching(nextDocument.path ?? path)
       } catch (cause) {
+        if (generation !== openGeneration.current) return
         setError(cause instanceof Error ? cause.message : 'The document could not be opened.')
       }
     },
@@ -37,9 +41,11 @@ export const App = () => {
   )
 
   const openFile = useCallback(async () => {
+    const generation = ++openGeneration.current
     try {
       setStatus('loading')
       const nextDocument = await pickMarkdownFile()
+      if (generation !== openGeneration.current) return
       if (!nextDocument) return setStatus(document ? 'ready' : 'idle')
       setDocument(nextDocument)
       if (nextDocument.path) await startWatching(nextDocument.path)
@@ -70,11 +76,31 @@ export const App = () => {
     let cancelled = false
     const cleanup: Array<() => void> = []
 
+    const openPendingFile = async () => {
+      if (cancelled) return
+      try {
+        const path = await invoke<string | null>('initial_file')
+        if (path) await openPath(path)
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : 'The requested document could not be opened.')
+      }
+    }
+
     const connect = async () => {
+      const unlistenOpen = await listen('markdown-open-requested', openPendingFile)
+      if (cancelled) {
+        unlistenOpen()
+        return
+      }
+      cleanup.push(unlistenOpen)
+
       const unlisten = await listen<string>('markdown-changed', async ({ payload }) => {
+        const currentDocument = useDocumentStore.getState().document
+        if (!currentDocument || currentDocument.path !== payload) return
         try {
           const scrollRatio = window.scrollY / Math.max(1, window.document.body.scrollHeight)
           const nextDocument = await openDocumentPath(payload)
+          if (useDocumentStore.getState().document !== currentDocument) return
           setDocument(nextDocument)
           setStatus('reloaded')
           requestAnimationFrame(() => window.scrollTo({ top: window.document.body.scrollHeight * scrollRatio }))
@@ -82,14 +108,33 @@ export const App = () => {
           setError(cause instanceof Error ? cause.message : 'The changed document could not be reloaded.')
         }
       })
-      if (cancelled) unlisten()
-      else cleanup.push(unlisten)
-
-      const initialPath = await invoke<string | null>('initial_file')
-      if (initialPath) await openPath(initialPath)
+      if (cancelled) {
+        unlisten()
+        return
+      }
+      cleanup.push(unlisten)
+      for (const event of ['tauri://drag-enter', 'tauri://drag-leave', 'tauri://drag-drop']) {
+        const stop = await listen<{ paths?: string[] }>(event, ({ payload }) => {
+          setDragging(event === 'tauri://drag-enter')
+          if (event === 'tauri://drag-drop' && payload.paths?.[0]) void openPath(payload.paths[0])
+        })
+        if (cancelled) {
+          stop()
+          return
+        }
+        cleanup.push(stop)
+      }
+      await openPendingFile()
     }
 
-    void connect()
+    const initialize = async () => {
+      try {
+        await connect()
+      } catch (cause) {
+        if (!cancelled) setError(cause instanceof Error ? cause.message : 'File opening could not be initialized.')
+      }
+    }
+    void initialize()
     return () => {
       cancelled = true
       cleanup.forEach((callback) => callback())
@@ -149,10 +194,16 @@ export const App = () => {
         event.preventDefault()
         setDragging(false)
         const file = event.dataTransfer.files[0]
-        if (file)
-          void documentFromDroppedFile(file)
-            .then(setDocument)
-            .catch((cause: Error) => setError(cause.message))
+        if (file) {
+          const readDrop = async () => {
+            try {
+              setDocument(await documentFromDroppedFile(file))
+            } catch (cause) {
+              setError(cause instanceof Error ? cause.message : 'The file could not be opened.')
+            }
+          }
+          void readDrop()
+        }
       }}
     >
       <div className="window-drag-strip" onMouseDown={(event) => void startWindowDrag(event)} aria-hidden="true" />
@@ -173,7 +224,13 @@ export const App = () => {
       )}
       {document && stats ? (
         <div className="document-stats">
-          <button onClick={close} aria-label="Close document">
+          <button
+            onClick={() => {
+              openGeneration.current += 1
+              close()
+            }}
+            aria-label="Close document"
+          >
             <X size={13} />
           </button>
           <span>{stats.words.toLocaleString()} words</span>

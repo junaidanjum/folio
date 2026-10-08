@@ -2,6 +2,10 @@
 
 Folio is a local-first desktop print preview for Markdown. Open a file, see it as physical pages, choose a document style, then print or save the same layout as PDF.
 
+## macOS alpha
+
+See [alpha installation, builds, and limitations](docs/alpha-release.md). The alpha is a universal Intel/Apple Silicon build without Developer ID signing or notarization.
+
 ## Prerequisites
 
 - Node.js 20+
@@ -33,7 +37,7 @@ Open `fixtures/kitchen-sink.md` to exercise the supported Markdown features.
 - `src/features/files` owns the native/local file boundary.
 - `src/features/settings` owns the document inspector.
 - `src/stores` contains small persisted settings and document stores.
-- `src-tauri` validates Markdown paths, reads files, watches external changes, and handles launch arguments.
+- `src-tauri` validates Markdown paths, reads files, watches external changes, and handles native file-open events and launch arguments.
 
 Document themes are typed definitions that map to scoped CSS variables. Adding a theme does not require changing the renderer. Markdown is rendered without script execution, raw HTML is sanitized, Mermaid uses strict security mode, and local files stay on the device.
 
@@ -45,7 +49,7 @@ The preview is measured into physical A4 or Letter sheets. **Print** opens the n
 
 ## Known limitations
 
-- Very tall indivisible blocks can be clipped at a page boundary; advanced line-level splitting is future work.
+- Long text, lists, code, and table rows are split across pages. Unsupported content that cannot fit shows a layout warning and blocks printing instead of silently clipping.
 - Browser development mode cannot resolve relative filesystem images because browsers do not expose the source path.
 - Silent one-click PDF export is not implemented; the native print dialog provides PDF export with the highest preview parity.
 
