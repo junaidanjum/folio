@@ -1,5 +1,6 @@
 dist
 node_modules
+.pnpm-store
 pnpm-lock.yaml
-src-tauri/gen/schemas
-src-tauri/target
+**/src-tauri/gen/schemas
+**/src-tauri/target

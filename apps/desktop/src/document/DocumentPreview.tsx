@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { getTheme } from './themes'
+import { getTheme } from '@folio/themes'
 import { MarkdownRenderer } from './MarkdownRenderer'
 import { paginateElements } from './pagination'
 import type { DocumentSettings, OpenDocument } from '../types/document'

@@ -1,4 +1,5 @@
-export type ThemeId = 'minimal' | 'editorial' | 'technical' | 'academic' | 'manuscript' | 'mono'
+import type { ThemeId } from '@folio/themes'
+
 export type PaperSize = 'a4' | 'letter'
 export type Orientation = 'portrait' | 'landscape'
 export type MarginPreset = 'narrow' | 'normal' | 'wide'

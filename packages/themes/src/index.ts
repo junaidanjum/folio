@@ -1,4 +1,4 @@
-import type { ThemeId } from '../types/document'
+export type ThemeId = 'minimal' | 'editorial' | 'technical' | 'academic' | 'manuscript' | 'mono'
 
 export type DocumentTheme = {
   id: ThemeId

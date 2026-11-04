@@ -28,13 +28,13 @@ jobs:
       - run: pnpm build:alpha
       - name: Verify universal bundle
         run: |
-          lipo src-tauri/target/universal-apple-darwin/release/bundle/macos/Folio.app/Contents/MacOS/folio -verify_arch arm64 x86_64
-          codesign --verify --deep --strict src-tauri/target/universal-apple-darwin/release/bundle/macos/Folio.app
-          shasum -a 256 src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg > SHA256SUMS.txt
+          lipo apps/desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/Folio.app/Contents/MacOS/folio -verify_arch arm64 x86_64
+          codesign --verify --deep --strict apps/desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/Folio.app
+          shasum -a 256 apps/desktop/src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
           name: folio-macos-universal-unsigned-alpha
           path: |
-            src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+            apps/desktop/src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
             SHA256SUMS.txt
           if-no-files-found: error

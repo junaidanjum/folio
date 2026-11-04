@@ -7,11 +7,6 @@ export default defineConfig({
   clearScreen: false,
   server: { port: 1420, strictPort: true },
   envPrefix: ['VITE_', 'TAURI_'],
-  build: {
-    rollupOptions: {
-      input: { app: 'index.html', landing: 'landing.html' },
-    },
-  },
   test: {
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',

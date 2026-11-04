@@ -5,7 +5,7 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', 'src-tauri/gen/schemas', 'src-tauri/target'] },
+  { ignores: ['**/dist', '**/.pnpm-store', '**/src-tauri/gen/schemas', '**/src-tauri/target'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

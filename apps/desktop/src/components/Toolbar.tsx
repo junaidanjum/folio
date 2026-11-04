@@ -1,8 +1,8 @@
 import { FileDown, Minus, Plus, Printer, Settings2 } from 'lucide-react'
-import { documentThemes } from '../document/themes'
+import { documentThemes, type ThemeId } from '@folio/themes'
 import { startWindowDrag } from '../features/window/window-drag'
 import { useSettingsStore } from '../stores/settings-store'
-import type { OpenDocument, PaperSize, ThemeId } from '../types/document'
+import type { OpenDocument, PaperSize } from '../types/document'
 import { FolioSelect } from './FolioSelect'
 
 type ToolbarProps = {

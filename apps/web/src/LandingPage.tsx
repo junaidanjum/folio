@@ -2,7 +2,7 @@ import { useState, type CSSProperties } from 'react'
 import { ArrowDown, ArrowRight, ArrowUpRight, Check, Code2, FileText, Github, Layers2, LockKeyhole, Monitor, Printer, RefreshCw } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { documentThemes } from '../document/themes'
+import { documentThemes } from '@folio/themes'
 
 const repository = 'https://github.com/junaidanjum/folio'
 const alphaRelease = `${repository}/releases/tag/v0.1.0-alpha`

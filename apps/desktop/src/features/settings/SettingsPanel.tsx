@@ -2,9 +2,9 @@ import { X } from 'lucide-react'
 import { Switch } from '@base-ui/react/switch'
 import type { WheelEvent } from 'react'
 import { FolioSelect } from '../../components/FolioSelect'
-import { documentThemes } from '../../document/themes'
+import { documentThemes, type ThemeId } from '@folio/themes'
 import { useSettingsStore } from '../../stores/settings-store'
-import type { DocumentSettings, MarginPreset, Orientation, PaperSize, ThemeId } from '../../types/document'
+import type { DocumentSettings, MarginPreset, Orientation, PaperSize } from '../../types/document'
 
 type SettingsPanelProps = { onClose: () => void }
 

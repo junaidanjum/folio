@@ -1,8 +1,9 @@
 node_modules
+.pnpm-store
 package-lock.json
 dist
-src-tauri/target
-src-tauri/gen/schemas
+**/src-tauri/target
+**/src-tauri/gen/schemas
 output
 tmp
 *.tsbuildinfo

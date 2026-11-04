@@ -26,6 +26,7 @@ jobs:
       - run: pnpm format:check
       - run: pnpm test
       - run: pnpm build
+      - run: pnpm build:landing
       - run: pnpm rust:fmt
       - run: pnpm rust:clippy
       - run: pnpm rust:test
