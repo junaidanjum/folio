@@ -35,7 +35,7 @@ beforeEach(() => {
       native.pendingPath = null
       return path
     }
-    if (command === 'read_markdown_file') return { path: args?.path, name: 'notes.md', content: `Opened ${args?.path}` }
+    if (command === 'read_markdown_file') return { path: args?.path, name: args?.path.split('/').at(-1), content: `Opened ${args?.path}` }
   })
 })
 
@@ -58,14 +58,20 @@ it('opens a file received before the interface is ready, including Strict Mode r
 it('opens files received from macOS after startup and replaces the current document', async () => {
   render(<App />)
   await waitFor(() => expect(native.invoke).toHaveBeenCalledWith('initial_file'))
-  for (const path of ['/tmp/first.md', '/tmp/second.markdown']) {
+  for (const [path, printTitle] of [
+    ['/tmp/First draft.md', 'First draft'],
+    ['/tmp/Second.draft.MARKDOWN', 'Second.draft'],
+  ]) {
     await act(async () => {
       native.pendingPath = path
       native.listeners.get('markdown-open-requested')?.({ payload: null })
     })
     await screen.findByText(`Opened ${path}`)
     expect(native.invoke).toHaveBeenCalledWith('watch_markdown_file', { path })
+    expect(document.title).toBe(printTitle)
   }
+  act(() => useDocumentStore.getState().close())
+  expect(document.title).toBe('Folio')
   cleanup()
   expect(native.listeners.size).toBe(0)
 })

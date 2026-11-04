@@ -23,6 +23,12 @@ export const App = () => {
   const openGeneration = useRef(0)
   const [busy, setBusy] = useState<'export' | 'print' | null>(null)
 
+  const fileName = document?.name
+  useEffect(() => {
+    // WebKit uses the page title for the native print job.
+    window.document.title = fileName?.replace(/\.(md|markdown)$/i, '') || 'Folio'
+  }, [fileName])
+
   const openPath = useCallback(
     async (path: string) => {
       const generation = ++openGeneration.current
